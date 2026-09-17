@@ -23,6 +23,12 @@ const SOURCE_FILE = path.join(
   __dirname, "..", "..", "..", "Ashtavakra", "Ashtavakra-Gita-Sampoorna-Vyakhya.md"
 );
 const DATA_DIR = path.join(__dirname, "..", "src", "content", "data");
+// Original Sanskrit per verse, scraped from shlokam.org/text/ashtavakra-gita.htm
+// (public-domain source text only, not their translation/commentary) — see
+// the commit that added this file for how it was extracted. Committed to
+// this repo (unlike the source .md above) since it's small and doesn't
+// depend on anything outside the repo.
+const SANSKRIT_FILE = path.join(__dirname, "..", "src", "content", "sanskrit.json");
 
 const DEVANAGARI_DIGITS = "०१२३४५६७८९";
 function devanagariToInt(s) {
@@ -35,15 +41,21 @@ function devanagariToInt(s) {
   );
 }
 
-function parseSegment(raw) {
+function parseSegment(raw, sanskritMap) {
   const text = raw.trim();
   if (!text) return null;
 
   const verseMatch = text.match(/^\*\*श्लोक ([^*]+)\*\*\s*\n+>\s*(.+)\n*([\s\S]*)$/);
   if (verseMatch) {
+    const number = verseMatch[1].trim();
+    const key = number
+      .split(".")
+      .map((part) => devanagariToInt(part))
+      .join(".");
     return {
       kind: "verse",
-      number: verseMatch[1].trim(),
+      number,
+      sanskrit: sanskritMap[key] ?? null,
       verseText: verseMatch[2].trim(),
       commentary: verseMatch[3].trim(),
     };
@@ -69,6 +81,9 @@ if (!fs.existsSync(SOURCE_FILE)) {
 }
 
 const raw = fs.readFileSync(SOURCE_FILE, "utf8");
+const sanskritMap = fs.existsSync(SANSKRIT_FILE)
+  ? JSON.parse(fs.readFileSync(SANSKRIT_FILE, "utf8"))
+  : {};
 
 // Drop the decorative repeated page-header lines before splitting.
 const cleaned = raw
@@ -88,11 +103,19 @@ for (const chunk of chapterSplit) {
 
   const segments = body
     .split(/\n---\n/)
-    .map(parseSegment)
+    .map((s) => parseSegment(s, sanskritMap))
     .filter(Boolean);
 
   if (!chaptersById.has(id)) chaptersById.set(id, []);
   chaptersById.get(id).push(...segments);
+}
+
+const missingSanskrit = [...chaptersById.values()]
+  .flat()
+  .filter((b) => b.kind === "verse" && b.sanskrit === null);
+if (missingSanskrit.length) {
+  console.log(`Warning: ${missingSanskrit.length} verse(s) have no matching Sanskrit text:`,
+    missingSanskrit.map((b) => b.number).join(", "));
 }
 
 fs.mkdirSync(DATA_DIR, { recursive: true });

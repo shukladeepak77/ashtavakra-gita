@@ -46,8 +46,21 @@ export default function ChapterPageBody({
               <span className="font-devanagari inline-block rounded-full bg-orange-900/10 px-3 py-1 text-xs font-bold text-orange-900">
                 श्लोक {block.number}
               </span>
+              {block.sanskrit && (
+                <div className="mt-3 rounded-2xl bg-amber-500/10 px-4 py-3">
+                  <p className="text-[0.7rem] font-bold tracking-wide text-orange-900/70 uppercase">
+                    मूल श्लोक (संस्कृत)
+                  </p>
+                  <p className="font-devanagari mt-1 text-[1.05rem] leading-relaxed whitespace-pre-line text-foreground">
+                    {block.sanskrit}
+                  </p>
+                </div>
+              )}
+              <p className="mt-3 text-[0.7rem] font-bold tracking-wide text-orange-900/70 uppercase">
+                भावार्थ
+              </p>
               <blockquote
-                className="font-devanagari mt-3 border-l-4 border-amber-500/70 pl-4 text-[1.05rem] leading-relaxed font-semibold text-foreground italic"
+                className="font-devanagari mt-1 border-l-4 border-amber-500/70 pl-4 text-[1.05rem] leading-relaxed font-semibold text-foreground italic"
               >
                 {block.verseText}
               </blockquote>

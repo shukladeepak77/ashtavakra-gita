@@ -22,7 +22,7 @@ Each chapter's JSON is `{ id, blocks }`, where `blocks` is an ordered list
 of either:
 
 ```json
-{ "kind": "verse", "number": "२.१", "verseText": "...", "commentary": "..." }
+{ "kind": "verse", "number": "२.१", "sanskrit": "...", "verseText": "...", "commentary": "..." }
 { "kind": "note", "label": "भूमिका", "text": "..." }
 ```
 
@@ -30,6 +30,24 @@ of either:
 have no separate commentary paragraph. `note` blocks cover both the
 labeled "भूमिका" intros and the unlabeled closing/summary paragraph most
 chapters end with (`label: null` in that case).
+
+## Sanskrit text
+
+`src/content/sanskrit.json` (`{ "chapter.verse": "..." }`, e.g. `"18.100"`)
+holds the original Sanskrit for all 298 verses — extracted once from
+[shlokam.org's Ashtavakra Gita page](https://shlokam.org/text/ashtavakra-gita.htm)
+(public-domain source text only; shlokam.org's own translation/commentary
+was not used). It's committed directly to this repo, unlike the Hindi
+source .md, since it's small and self-contained. `chapter.verse` numbering
+matches the source .md's own "श्लोक N.M" numbering exactly (verified:
+identical per-chapter verse counts across both sources for all 20
+chapters) — `generate-ashtavakra-content.js` converts each verse's
+Devanagari number to this key to look up its Sanskrit text.
+
+To re-extract (e.g. if shlokam.org's markup changes or new verses are
+added): fetch the page, then adapt the one-off Python parser described in
+the commit that added sanskrit.json — it's not part of the regular build
+pipeline since it only needs to run once.
 
 ## Regenerating after editing the source .md
 
