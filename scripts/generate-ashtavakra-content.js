@@ -57,6 +57,17 @@ function parseSegment(raw) {
   return { kind: "note", label: null, text };
 }
 
+// The source .md lives in a sibling directory on the machine this was
+// authored on — it isn't (and shouldn't be) part of this git repo, so it
+// won't exist on Netlify's build server. src/content/data/*.json is
+// already committed with its output, so when the source is absent this
+// just leaves that committed data alone and exits successfully, instead
+// of crashing the whole `npm run build`.
+if (!fs.existsSync(SOURCE_FILE)) {
+  console.log(`Source file not found at ${SOURCE_FILE} — leaving src/content/data/ as committed.`);
+  process.exit(0);
+}
+
 const raw = fs.readFileSync(SOURCE_FILE, "utf8");
 
 // Drop the decorative repeated page-header lines before splitting.
